@@ -1,5 +1,12 @@
 package tryjavacv;
 
+import java.io.IOException;
+
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecuteResultHandler;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.Executor;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -14,8 +21,31 @@ public class GrabberShow implements Runnable {
 	}
 
 
+	public static void ffmpegVideoSource() {
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					CommandLine cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -f mpegts udp://0.0.0.0:4443");
+					
+					DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 
-	public static void play(String file) {
+					ExecuteWatchdog watchdog = new ExecuteWatchdog(60 * 1000);
+					Executor executor = new DefaultExecutor();
+					executor.setExitValue(1);
+					executor.setWatchdog(watchdog);
+					executor.execute(cmdLine, resultHandler);
+					
+					System.out.println("FFMPEG done");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}				
+			}
+		}, "FFMPEG runner").start();
+	}
+	
+	public static void play() {
 
 		try {
 			FrameGrabber frameGrabber = FFmpegFrameGrabber.createDefault("udp://0.0.0.0:4443"); // FFmpegFrameGrabber(file.getAbsolutePath());
@@ -61,7 +91,9 @@ public class GrabberShow implements Runnable {
 
 	@Override
 	public void run() {
-		play("/home/shalomc/outputs/DS9/78_2017-04-27_16-34-27S.ts");
+		ffmpegVideoSource();
+		
+		play();
 		// convert(new File("/dev/video0"));
 	}
 
