@@ -24,7 +24,7 @@ package tryjavacv;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.io.File;
+import java.net.URI;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -39,62 +39,64 @@ import org.gstreamer.swing.VideoComponent;
  */
 public class VideoPlayer {
     public static void main(String[] args) {
-    	UDPVideoSource source = new UDPVideoSource();
+    	try {
+			UDPVideoSource source = new UDPVideoSource();
+
+			//
+			// Initialize the gstreamer framework, and let it interpret any command
+			// line flags it is interested in.
+			//
+			args = Gst.init("VideoPlayer", args);
 
 
-        //
-        // Initialize the gstreamer framework, and let it interpret any command
-        // line flags it is interested in.
-        //
-        args = Gst.init("VideoPlayer", args);
+			//
+			// Create a PlayBin2 to play the media file.  A PlayBin2 is a Pipeline that
+			// creates all the needed elements and automatically links them together.
+			//
 
 
-        //
-        // Create a PlayBin2 to play the media file.  A PlayBin2 is a Pipeline that
-        // creates all the needed elements and automatically links them together.
-        //
+			final PlayBin2 playbin = new PlayBin2("VideoPlayer", new URI("udp://0.0.0.0:4443"));
 
 
-        final PlayBin2 playbin = new PlayBin2("VideoPlayer");
+			//
+			// We now have to do the rest in the context of the Swing EDT, because
+			// we are constructing Swing components.
+			//
+			SwingUtilities.invokeLater(new Runnable() {
 
-        // Set the file to play
-        playbin.setInputFile(new File("udp://0.0.0.0:4443"));
+			    @Override
+				public void run() {
+			        //
+			        // A VideoComponent displays video in a lightweight swing component
+			        //
+			        VideoComponent videoComponent = new VideoComponent();
 
-        //
-        // We now have to do the rest in the context of the Swing EDT, because
-        // we are constructing Swing components.
-        //
-        SwingUtilities.invokeLater(new Runnable() {
+			        // Add the video component as the playbin video output
+			        playbin.setVideoSink(videoComponent.getElement());
 
-            @Override
-			public void run() {
-                //
-                // A VideoComponent displays video in a lightweight swing component
-                //
-                VideoComponent videoComponent = new VideoComponent();
+			        // Start the pipeline playing
+			        playbin.play();
 
-                // Add the video component as the playbin video output
-                playbin.setVideoSink(videoComponent.getElement());
+			        //
+			        // Initialise the top-level frame and add the video component
+			        //
+			        JFrame frame = new JFrame("VideoPlayer");
+			        frame.getContentPane().add(videoComponent, BorderLayout.CENTER);
+			        frame.setPreferredSize(new Dimension(640, 480));
+			        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			        frame.pack();
+			        frame.setVisible(true);
+			    }
+			});
 
-                // Start the pipeline playing
-                playbin.play();
+			//
+			// Wait until Gst.quit() is called.
+			//
+			Gst.main();
+			playbin.stop();
 
-                //
-                // Initialise the top-level frame and add the video component
-                //
-                JFrame frame = new JFrame("VideoPlayer");
-                frame.getContentPane().add(videoComponent, BorderLayout.CENTER);
-                frame.setPreferredSize(new Dimension(640, 480));
-                frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                frame.pack();
-                frame.setVisible(true);
-            }
-        });
-
-        //
-        // Wait until Gst.quit() is called.
-        //
-        Gst.main();
-        playbin.stop();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 }
