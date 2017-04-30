@@ -37,7 +37,7 @@ public class GrabberShow implements Runnable {
 						continue;
 					}
 
-					if (frame.imageChannels != 1 && frame.imageChannels != 3 && frame.imageChannels != 4 && frame.imageChannels != 8) {
+					if (frame.imageChannels != 1 && frame.imageChannels != 3 && frame.imageChannels != 4) {
 						System.out.format("Incorrect number of image channels: %d\n", frame.imageChannels);
 						continue;
 					}
@@ -48,12 +48,12 @@ public class GrabberShow implements Runnable {
 						continue;
 					}
 
-					if (lastWidth != frame.imageWidth || lastHeight != frame.imageHeight) {
-						canvas.setCanvasSize(frame.imageWidth, frame.imageHeight);
-
-						lastWidth = frame.imageWidth;
-						lastHeight = frame.imageHeight;
-					}
+//					if (lastWidth != frame.imageWidth || lastHeight != frame.imageHeight) {
+//						canvas.setCanvasSize(frame.imageWidth, frame.imageHeight);
+//
+//						lastWidth = frame.imageWidth;
+//						lastHeight = frame.imageHeight;
+//					}
 
 					canvas.showImage(frame);
 
