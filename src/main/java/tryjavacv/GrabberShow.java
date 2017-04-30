@@ -1,9 +1,5 @@
 package tryjavacv;
 
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.ExecuteWatchdog;
-import org.apache.commons.exec.Executor;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
@@ -18,50 +14,6 @@ public class GrabberShow implements Runnable {
 	}
 
 
-	public static void ffmpegVideoSource() {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					while (true) {
-						CommandLine cmdLine;
-						ExecuteWatchdog watchdog;
-						Executor executor;
-						try {
-							System.out.println("Start standard scale FFMPEG");
-							cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -f mpegts udp://0.0.0.0:4443");
-
-							watchdog = new ExecuteWatchdog(20 * 1000);
-							executor = new DefaultExecutor();
-							executor.setExitValue(1);
-							executor.setWatchdog(watchdog);
-							executor.execute(cmdLine);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						try {
-							System.out.println("Start altered scale FFMPEG");
-							cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
-
-							watchdog = new ExecuteWatchdog(20 * 1000);
-							executor = new DefaultExecutor();
-							executor.setExitValue(1);
-							executor.setWatchdog(watchdog);
-							executor.execute(cmdLine);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			}
-		}, "FFMPEG runner").start();
-	}
-
 	public static void play() {
 
 		try {
@@ -71,9 +23,8 @@ public class GrabberShow implements Runnable {
 			frameGrabber.setNumBuffers(1024);
 			Frame frame = null;
 
-			int lastWidth = 0;
-			int lastHeight = 0;
-
+			int lastWidth = -1;
+			int lastHeight = -1;
 
 			frameGrabber.start();
 
@@ -81,9 +32,20 @@ public class GrabberShow implements Runnable {
 				try {
 					frame = frameGrabber.grab();
 
-					if (frame == null || frame.imageChannels == 0 || frame.imageDepth == 0) {
-						System.out.println("!!! Failed cvQueryFrame");
-						break;
+					if (frame == null) {
+						System.out.println("Null frame");
+						continue;
+					}
+
+					if (frame.imageChannels != 1 && frame.imageChannels != 3 && frame.imageChannels != 4 && frame.imageChannels != 8) {
+						System.out.format("Incorrect number of image channels: %d\n", frame.imageChannels);
+						continue;
+					}
+
+
+					if (frame.imageDepth < 1 || frame.imageDepth > 16) {
+						System.out.format("Incorrect depth: %d\n", frame.imageDepth);
+						continue;
 					}
 
 					if (lastWidth != frame.imageWidth || lastHeight != frame.imageHeight) {
@@ -95,7 +57,7 @@ public class GrabberShow implements Runnable {
 
 					canvas.showImage(frame);
 
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					e.printStackTrace();
 				}
 			}
@@ -106,7 +68,7 @@ public class GrabberShow implements Runnable {
 
 	@Override
 	public void run() {
-		ffmpegVideoSource();
+		new UDPVideoSource();
 
 		play();
 		// convert(new File("/dev/video0"));
@@ -114,7 +76,7 @@ public class GrabberShow implements Runnable {
 
 	public static void main(String[] args) {
 		GrabberShow gs = new GrabberShow();
-		Thread th = new Thread(gs);
+		Thread th = new Thread(gs, "Display thread");
 		th.start();
 	}
 }
