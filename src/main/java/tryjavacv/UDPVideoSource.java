@@ -11,8 +11,23 @@ public class UDPVideoSource {
 
 	public static final long TIME_BETWEEN_PROCESSES = 150;
 
+	String outputUrl = "udp://0.0.0.0:4443";
 
-	public UDPVideoSource() {
+	public String getOutputUrl() {
+		return outputUrl;
+	}
+
+	public void setOutputUrl(String outputUrl) {
+		this.outputUrl = outputUrl;
+	}
+
+	public UDPVideoSource(String sink) {
+		if (sink == null) {
+			sink = outputUrl;
+		} else {
+			outputUrl = sink;
+		}
+
 		new Thread(new Runnable() {
 
 			@Override
@@ -26,9 +41,9 @@ public class UDPVideoSource {
 							System.out.println("Start standard scale FFMPEG");
 
 							if (Platform.isLinux()) {
-								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -f mpegts udp://0.0.0.0:4443");
+								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -f mpegts " + outputUrl);
 							} else if (Platform.isWindows()) {
-								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Camera\" -f mpegts udp://0.0.0.0:4443");
+								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Camera\" -f mpegts " + outputUrl);
 
 							} else {
 								throw new Exception("Unknown platform");

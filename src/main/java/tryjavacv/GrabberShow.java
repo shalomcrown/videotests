@@ -118,7 +118,7 @@ public class GrabberShow implements Runnable {
 
 	@Override
 	public void run() {
-		new UDPVideoSource();
+		new UDPVideoSource(null);
 
 		play();
 		// convert(new File("/dev/video0"));

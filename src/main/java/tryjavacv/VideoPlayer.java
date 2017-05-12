@@ -40,7 +40,7 @@ import org.gstreamer.swing.VideoComponent;
 public class VideoPlayer {
     public static void main(String[] args) {
     	try {
-			UDPVideoSource source = new UDPVideoSource();
+			UDPVideoSource source = new UDPVideoSource(null);
 
 			//
 			// Initialize the gstreamer framework, and let it interpret any command
