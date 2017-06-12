@@ -43,7 +43,7 @@ public class UDPVideoSource {
 							if (Platform.isLinux()) {
 								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -f mpegts " + outputUrl);
 							} else if (Platform.isWindows()) {
-								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Camera\" -f mpegts " + outputUrl);
+								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Webcam\" -f mpegts " + outputUrl);
 
 							} else {
 								throw new Exception("Unknown platform");
@@ -65,7 +65,7 @@ public class UDPVideoSource {
 							if (Platform.isLinux()) {
 								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
 							} else if (Platform.isWindows()) {
-								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Camera\" -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
+								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Webcam\" -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
 							} else {
 								throw new Exception("Unknown platform");
 							}
