@@ -14,9 +14,13 @@ import org.opencv.videoio.Videoio;
 
 public class GrabberShowOfficial implements Runnable {
 
+
 	static {
-		nu.pattern.OpenCV.loadShared();
-		System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+		try {
+			System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
+		} catch (UnsatisfiedLinkError e) {
+			System.load("/usr/local/share/OpenCV/java/libopencv_java320.so");
+		}
 	}
 
 
@@ -25,6 +29,8 @@ public class GrabberShowOfficial implements Runnable {
 	JFrame frame;
 	BufferedImage latestFrame;
 	VideoCapture cap;
+	static int lastWidth = -1;
+	static int lastHeight = -1;
 
 
 	public GrabberShowOfficial(String source) {
@@ -75,10 +81,9 @@ public class GrabberShowOfficial implements Runnable {
 
 		Thread.sleep(50);
 
-		cap = new VideoCapture();
-		cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
+		cap = new VideoCapture(source);
+		cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1);
 //		cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
-		cap.open(source);
 		Thread.sleep(50);
 	}
 
@@ -113,7 +118,16 @@ public class GrabberShowOfficial implements Runnable {
 						continue;
 					}
 
+
+					if (lastWidth != w || lastHeight != h && frame != null) {
+						frame.setSize(w, h);
+						lastWidth = w;
+						lastHeight = h;
+					}
+
+
 					byte[] data = new byte[w * h * 3];
+
 					mat.get(0, 0, data);
 
 					BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);

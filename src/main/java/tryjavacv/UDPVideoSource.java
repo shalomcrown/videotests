@@ -11,7 +11,7 @@ public class UDPVideoSource {
 
 	public static final long TIME_BETWEEN_PROCESSES = 150;
 
-	String outputUrl = "udp://0.0.0.0:4443";
+	String outputUrl = "udp://127.0.0.1:4443";
 	String readURL = "udp://127.0.0.1:4443";
 
 	public String getOutputUrl() {
@@ -50,7 +50,7 @@ public class UDPVideoSource {
 								throw new Exception("Unknown platform");
 							}
 
-							watchdog = new ExecuteWatchdog(100 * 1000);
+							watchdog = new ExecuteWatchdog(10 * 1000);
 							executor = new DefaultExecutor();
 							executor.setExitValue(1);
 							executor.setWatchdog(watchdog);
@@ -64,14 +64,14 @@ public class UDPVideoSource {
 						try {
 							System.out.println("Start altered scale FFMPEG");
 							if (Platform.isLinux()) {
-								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
+								cmdLine = CommandLine.parse("ffmpeg -i /dev/video0 -vf scale=240:200 -f mpegts " + outputUrl);
 							} else if (Platform.isWindows()) {
-								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Webcam\" -vf scale=240:200 -f mpegts udp://0.0.0.0:4443");
+								cmdLine = CommandLine.parse("ffmpeg -f dshow -i video=\"Integrated Webcam\" -vf scale=240:200 -f mpegts " + outputUrl);
 							} else {
 								throw new Exception("Unknown platform");
 							}
 
-							watchdog = new ExecuteWatchdog(100 * 1000);
+							watchdog = new ExecuteWatchdog(10 * 1000);
 							executor = new DefaultExecutor();
 							executor.setExitValue(1);
 							executor.setWatchdog(watchdog);
@@ -88,6 +88,16 @@ public class UDPVideoSource {
 				}
 			}
 		}, "FFMPEG runner").start();
+	}
+
+	public static void main(String[] args) {
+		new UDPVideoSource(null);
+
+		try {
+			Thread.sleep(10000000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
