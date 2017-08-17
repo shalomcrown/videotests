@@ -24,6 +24,7 @@ public class GrabberShowOfficial implements Runnable {
 	String source;
 	JFrame frame;
 	BufferedImage latestFrame;
+	VideoCapture cap;
 
 
 	public GrabberShowOfficial(String source) {
@@ -64,25 +65,41 @@ public class GrabberShowOfficial implements Runnable {
         new Thread(this).start();
 	}
 
+	//===================================================================
+
+
+	public void reopen() throws Exception {
+		if (cap != null) {
+			cap.release();
+		}
+
+		Thread.sleep(50);
+
+		cap = new VideoCapture();
+		cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
+//		cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
+		cap.open(source);
+		Thread.sleep(50);
+	}
+
+	//===================================================================
+
+
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(50);
-			VideoCapture cap = new VideoCapture();
-			cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
-			cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
-			cap.open(source);
-			Thread.sleep(50);
-
-			if (cap.isOpened() == false) {
-				System.out.println("Not open");
-			}
 
 			Mat mat = new Mat();
 
 
 			while (true) {
 				try {
+					if (cap == null || cap.isOpened() == false) {
+						System.out.println("Not open");
+						reopen();
+					}
+
+
 					Thread.sleep(20);
 
 					if (! cap.read(mat)) {
