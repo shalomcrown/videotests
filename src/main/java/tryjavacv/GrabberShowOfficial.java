@@ -66,42 +66,54 @@ public class GrabberShowOfficial implements Runnable {
 
 	@Override
 	public void run() {
-		VideoCapture cap = new VideoCapture();
-		cap.open(source);
-		cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
-		cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
+		try {
+			Thread.sleep(50);
+			VideoCapture cap = new VideoCapture();
+			cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
+			cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
+			cap.open(source);
+			Thread.sleep(50);
 
-
-		Mat mat = new Mat();
-
-
-		while (true) {
-			try {
-
-				cap.read(mat);
-
-				int w = mat.cols();
-				int h = mat.rows();
-
-				if (w == 0 || h == 0) {
-					continue;
-				}
-
-				byte[] data = new byte[w * h * 3];
-				mat.get(0, 0, data);
-
-				BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-
-				final byte[] targetPixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-				System.arraycopy(data, 0, targetPixels, 0, data.length);
-
-				latestFrame = img;
-				if (frame != null && frame.isVisible()) {
-					frame.repaint();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			if (cap.isOpened() == false) {
+				System.out.println("Not open");
 			}
+
+			Mat mat = new Mat();
+
+
+			while (true) {
+				try {
+					Thread.sleep(20);
+
+					if (! cap.read(mat)) {
+						continue;
+					}
+
+					int w = mat.cols();
+					int h = mat.rows();
+
+					if (w == 0 || h == 0) {
+						continue;
+					}
+
+					byte[] data = new byte[w * h * 3];
+					mat.get(0, 0, data);
+
+					BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
+
+					final byte[] targetPixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+					System.arraycopy(data, 0, targetPixels, 0, data.length);
+
+					latestFrame = img;
+					if (frame != null && frame.isVisible()) {
+						frame.repaint();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

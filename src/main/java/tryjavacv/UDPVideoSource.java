@@ -12,9 +12,10 @@ public class UDPVideoSource {
 	public static final long TIME_BETWEEN_PROCESSES = 150;
 
 	String outputUrl = "udp://0.0.0.0:4443";
+	String readURL = "udp://127.0.0.1:4443";
 
 	public String getOutputUrl() {
-		return outputUrl;
+		return readURL;
 	}
 
 	public void setOutputUrl(String outputUrl) {
@@ -49,7 +50,7 @@ public class UDPVideoSource {
 								throw new Exception("Unknown platform");
 							}
 
-							watchdog = new ExecuteWatchdog(10 * 1000);
+							watchdog = new ExecuteWatchdog(100 * 1000);
 							executor = new DefaultExecutor();
 							executor.setExitValue(1);
 							executor.setWatchdog(watchdog);
@@ -70,7 +71,7 @@ public class UDPVideoSource {
 								throw new Exception("Unknown platform");
 							}
 
-							watchdog = new ExecuteWatchdog(10 * 1000);
+							watchdog = new ExecuteWatchdog(100 * 1000);
 							executor = new DefaultExecutor();
 							executor.setExitValue(1);
 							executor.setWatchdog(watchdog);
