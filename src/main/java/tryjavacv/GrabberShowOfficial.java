@@ -2,6 +2,7 @@ package tryjavacv;
 
 import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -9,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 
 public class GrabberShowOfficial implements Runnable {
 
@@ -31,7 +33,7 @@ public class GrabberShowOfficial implements Runnable {
             @Override
 			public void run() {
                 try {
-                    JFrame frame = new JFrame("Video test") {
+                    frame = new JFrame("Video test") {
 						private static final long serialVersionUID = 358723437047700939L;
 
 						@Override
@@ -64,24 +66,22 @@ public class GrabberShowOfficial implements Runnable {
 
 	@Override
 	public void run() {
-		VideoCapture cap = new VideoCapture("udp://@0.0.0.0:4443");
+		VideoCapture cap = new VideoCapture();
+		cap.open(source);
+		cap.set(Videoio.CAP_PROP_BUFFERSIZE, 1024);
+		cap.set(Videoio.CAP_PROP_CONVERT_RGB, 1);
+
 
 		Mat mat = new Mat();
 
 
 		while (true) {
 			try {
-				Thread.sleep(300);
 
-				if (! cap.read(mat)) {
-					System.out.println("No frame received");
-					continue;
-				}
+				cap.read(mat);
 
 				int w = mat.cols();
 				int h = mat.rows();
-
-				System.out.printf("Received frame %dx%d\n", w,h);
 
 				if (w == 0 || h == 0) {
 					continue;
@@ -91,7 +91,9 @@ public class GrabberShowOfficial implements Runnable {
 				mat.get(0, 0, data);
 
 				BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
-				img.getRaster().setDataElements(0, 0, w, h, data);
+
+				final byte[] targetPixels = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
+				System.arraycopy(data, 0, targetPixels, 0, data.length);
 
 				latestFrame = img;
 				if (frame != null && frame.isVisible()) {
